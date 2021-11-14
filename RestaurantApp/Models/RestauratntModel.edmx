@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="RestaurantDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="RestaurantDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Customer">
           <Key>
             <PropertyRef Name="customerId" />
@@ -27,13 +27,64 @@
           <Property Name="paymentTypeId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="paymentTypeName" Type="varchar" MaxLength="50" Nullable="false" />
         </EntityType>
+        <EntityType Name="Details">
+          <Key>
+            <PropertyRef Name="DetailsId" />
+          </Key>
+          <Property Name="DetailsId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="orderId" Type="int" Nullable="false" />
+          <Property Name="itemsId" Type="int" Nullable="false" />
+          <Property Name="Quantity" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="UnitPrice" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="Discount" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="FinalTotal" Type="decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <EntityType Name="orders">
+          <Key>
+            <PropertyRef Name="orderId" />
+          </Key>
+          <Property Name="orderId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="paymentTypeId" Type="int" Nullable="false" />
+          <Property Name="customerId" Type="int" Nullable="false" />
+          <Property Name="orderNumber" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="orderDate" Type="datetime" Nullable="false" />
+          <Property Name="finalTotal" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+        </EntityType>
+        <EntityType Name="transactions">
+          <Key>
+            <PropertyRef Name="transactionId" />
+          </Key>
+          <Property Name="transactionId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="itemId" Type="int" Nullable="false" />
+          <Property Name="quantity" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="transactionDate" Type="datetime" Nullable="false" />
+          <Property Name="typeId" Type="int" />
+        </EntityType>
+        <Association Name="FK_Details_orders">
+          <End Role="orders" Type="Self.orders" Multiplicity="1" />
+          <End Role="Details" Type="Self.Details" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="orders">
+              <PropertyRef Name="orderId" />
+            </Principal>
+            <Dependent Role="Details">
+              <PropertyRef Name="orderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="RestaurantDBModelStoreContainer">
           <EntitySet Name="Customer" EntityType="Self.Customer" Schema="master" store:Type="Tables" />
           <EntitySet Name="items" EntityType="Self.items" Schema="master" store:Type="Tables" />
           <EntitySet Name="paymentType" EntityType="Self.paymentType" Schema="master" store:Type="Tables" />
+          <EntitySet Name="Details" EntityType="Self.Details" Schema="order" store:Type="Tables" />
+          <EntitySet Name="orders" EntityType="Self.orders" Schema="order" store:Type="Tables" />
+          <EntitySet Name="transactions" EntityType="Self.transactions" Schema="order" store:Type="Tables" />
+          <AssociationSet Name="FK_Details_orders" Association="Self.FK_Details_orders">
+            <End Role="orders" EntitySet="orders" />
+            <End Role="Details" EntitySet="Details" />
+          </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="RestaurantDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -63,7 +114,61 @@
           <EntitySet Name="Customers" EntityType="Self.Customer" />
           <EntitySet Name="items" EntityType="Self.item" />
           <EntitySet Name="paymentTypes" EntityType="Self.paymentType" />
+          <EntitySet Name="transactions" EntityType="RestaurantDBModel.transaction" />
+          <EntitySet Name="Details" EntityType="RestaurantDBModel.Detail" />
+          <EntitySet Name="orders" EntityType="RestaurantDBModel.order" />
+          <AssociationSet Name="FK_Details_orders" Association="RestaurantDBModel.FK_Details_orders">
+            <End Role="order" EntitySet="orders" />
+            <End Role="Detail" EntitySet="Details" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="transaction">
+          <Key>
+            <PropertyRef Name="transactionId" />
+          </Key>
+          <Property Name="transactionId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="itemId" Type="Int32" Nullable="false" />
+          <Property Name="quantity" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="transactionDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="typeId" Type="Int32" />
+        </EntityType>
+        <EntityType Name="Detail">
+          <Key>
+            <PropertyRef Name="DetailsId" />
+          </Key>
+          <Property Name="DetailsId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="orderId" Type="Int32" Nullable="false" />
+          <Property Name="itemsId" Type="Int32" Nullable="false" />
+          <Property Name="Quantity" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Discount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="FinalTotal" Type="Decimal" Precision="18" Scale="2" />
+          <NavigationProperty Name="order" Relationship="RestaurantDBModel.FK_Details_orders" FromRole="Detail" ToRole="order" />
+        </EntityType>
+        <EntityType Name="order">
+          <Key>
+            <PropertyRef Name="orderId" />
+          </Key>
+          <Property Name="orderId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="paymentTypeId" Type="Int32" Nullable="false" />
+          <Property Name="customerId" Type="Int32" Nullable="false" />
+          <Property Name="orderNumber" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="orderDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="finalTotal" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <NavigationProperty Name="Details" Relationship="RestaurantDBModel.FK_Details_orders" FromRole="order" ToRole="Detail" />
+        </EntityType>
+        <Association Name="FK_Details_orders">
+          <End Type="RestaurantDBModel.order" Role="order" Multiplicity="1" />
+          <End Type="RestaurantDBModel.Detail" Role="Detail" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="order">
+              <PropertyRef Name="orderId" />
+            </Principal>
+            <Dependent Role="Detail">
+              <PropertyRef Name="orderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -95,7 +200,43 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-        </EntityContainerMapping>
+          <EntitySetMapping Name="transactions">
+            <EntityTypeMapping TypeName="RestaurantDBModel.transaction">
+              <MappingFragment StoreEntitySet="transactions">
+                <ScalarProperty Name="typeId" ColumnName="typeId" />
+                <ScalarProperty Name="transactionDate" ColumnName="transactionDate" />
+                <ScalarProperty Name="quantity" ColumnName="quantity" />
+                <ScalarProperty Name="itemId" ColumnName="itemId" />
+                <ScalarProperty Name="transactionId" ColumnName="transactionId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Details">
+            <EntityTypeMapping TypeName="RestaurantDBModel.Detail">
+              <MappingFragment StoreEntitySet="Details">
+                <ScalarProperty Name="FinalTotal" ColumnName="FinalTotal" />
+                <ScalarProperty Name="Discount" ColumnName="Discount" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+                <ScalarProperty Name="itemsId" ColumnName="itemsId" />
+                <ScalarProperty Name="orderId" ColumnName="orderId" />
+                <ScalarProperty Name="DetailsId" ColumnName="DetailsId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="orders">
+            <EntityTypeMapping TypeName="RestaurantDBModel.order">
+              <MappingFragment StoreEntitySet="orders">
+                <ScalarProperty Name="finalTotal" ColumnName="finalTotal" />
+                <ScalarProperty Name="orderDate" ColumnName="orderDate" />
+                <ScalarProperty Name="orderNumber" ColumnName="orderNumber" />
+                <ScalarProperty Name="customerId" ColumnName="customerId" />
+                <ScalarProperty Name="paymentTypeId" ColumnName="paymentTypeId" />
+                <ScalarProperty Name="orderId" ColumnName="orderId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
   </edmx:Runtime>

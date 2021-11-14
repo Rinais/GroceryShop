@@ -3,26 +3,328 @@
     ViewBag.Title = "Index";
 }
 
-<h2>Index</h2>
+<script src="~/Scripts/jquery-1.9.1.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#PaymentType").val(1);
+        $("#Items").change(function () {
+            var itemId = $("#Items").val();
+            getItemId(itemId);
+        });
+        $(("input[type=number]") || ("input[type=text]")).change(function () {
+            calculateTotal();
+        });
+        $("#AddToList").click(function () {
+            AddToList();
+        });
+        $("input[type=number]").keyup(function () {
+            CalculateBalanceAmount();
+        });
+        $("#checkOut").click(function () {
+            CalculateBalanceAmount();
+        })
+        $("#Payment").click(function () {
+            saveData();
+        });
+
+        function saveData() {
+            var order = {};
+            var orderDetails = new Array();
+
+            order.PaymentTypeId = $("#PaymentType").val();
+            order.customerId = $("#customer").val();
+            order.FinalToal = $("#grandTotal").val();
+
+            $("#tabelListItems").find("tr:gt(0)").each(function () {
+                var innerVariable = {};
+                innerVariable.itemId = parseFloat($(this).find("td:eq(0)").text());
+                innerVariable.unitPrice = parseFloat($(this).find("td:eq(2)").text());
+                innerVariable.quantity = parseFloat($(this).find("td:eq(3)").text());
+                innerVariable.discount = parseFloat($(this).find("td:eq(4)").text());
+                innerVariable.total = parseFloat($(this).find("td:eq(5)").text());
+
+                orderDetails.push(innerVariable);
+            }),
+                order.orderDetailsViewModel = orderDetails;
+
+            $.ajax({
+                async: true,
+                type: "POST",
+                dataType: "JSON",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(order),
+                URL: "/home/index",
+                success: function () {
+                    alert("the items are successfully added to database");
+                },
+                error: function () {
+                    alert("There is a problem adding the request");
+                }
+            });
+            
+        }
+        function CalculateBalanceAmount() {
+            var PaymentTotal = $("#grandTotal").val();
+            var PaymentAmount = $("#PaymentAmount").val();
+            var ReturnTotal = $("#ReturnTotal").val();
+            var balanceAmount = Number(PaymentTotal) - Number(PaymentAmount) + Number(ReturnTotal);
+            $("#BalanceAmount").val(parseFloat(balanceAmount).toFixed(2));
+            (balanceAmount <= 0 || '') ? $("#Payment").removeAttr("disabled") : $("#Payment").attr("disabled", "disabled");
+
+        }
+
+        function calculateTotal() {
+            var UnitPrice = $("#UnitPrice").val();
+            var Quantity = $("#Quantity").val();
+            var Discount = $("#Discount").val();
+
+            var Total = (UnitPrice * Quantity) - Discount;
+            $("#Total").val(parseFloat(Total).toFixed(2));
+            (balanceAmount <= 0 || '') ? $("#Payment").removeAttr("disabled") : $("#Payment").attr("disabled", "disabled");
+
+        }
+        function AddToList() {
+            var tabelListItems = $("#tabelListItems");
+            var itemId = $("#Items").val();
+            var itemName = $("#Items option:selected").text();
+            var unitPrice = $("#UnitPrice").val();
+            var quantity = $("#Quantity").val();
+            var discount = $("#Discount").val();
+            var total = $("#Total").val();
+
+            var itemList = "<tr><td hidden>" +
+                itemId +
+                "</td><td>" +
+                itemName +
+                "</td><td>" +
+                unitPrice +
+                "</td><td>" +
+                parseFloat(quantity).toFixed(2) +
+                "</td><td>" +
+                parseFloat(discount).toFixed(2) +
+                "</td><td>" +
+                total +
+                "</td><td> <input type='button' style='margin: 4px' id='deleteButton' name='Delete' value='Delete' class='btn btn-danger btn-sm' onclick='DeleteItem(this)' /> </td></tr>";
+            tabelListItems.append(itemList);
+            grandTotal();
+            ResetForm();
+        }
+        function ResetForm() {
+            $("#customer").val(0);
+            $("#Items").val(0);
+            $("#UnitPrice").val('0.00');
+            $("#Quantity").val('0.00');
+            $("#Discount").val('0.00');
+            $("#Total").val('0.00');
+        }
+        function grandTotal() {
+            var finalValue = 0.00;
+            $("#tabelListItems").find("tr:gt(0)").each(function () {
+                var amount = $(this).find("td:eq(5)").text();
+                finalValue += parseFloat(amount);
+            });
+            $("#grandTotal").val(parseFloat(finalValue).toFixed(2));
+            $("#PaymentTotal").val(parseFloat(finalValue).toFixed(2));
+            $("#BalanceAmount").val(parseFloat(finalValue).toFixed(2));
+        }
+
+        function getItemId(itemId) {
+            $.ajax({
+                async: true,
+                type: "GET",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                url: '/Home/getItemById',
+                data: { itemId: itemId },
+                success: function (data, status) {
+                    $("#UnitPrice").val(parseFloat(data).toFixed(2));
+                },
+                error: function () {
+                    alert("There is some problem to find the unit price");
+                }
+            });
+        }
+    })
+    
+</script>
+<style>
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #f5f5f5;
+        padding-left: 10px !important;
+        margin-top: 10px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 35%;
+        bottom: 1px;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: grey;
+    }
+    .saveButton {
+        float: right;
+        width: 91px !important;
+        margin-top: 5mm !important;
+    }
+    .modelClass {
+        margin-top: 10px !important;
+    }
+</style>
 <fieldset>
     <legend>
         Restaurant
     </legend>
     <div class="container">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="form-group">
                     Customer:
-                    @Html.DropDownList("customer", new SelectList(Model.Item1, "Value", "Text"), new { @class = "form-control" })
+                    @Html.DropDownList("customer", new SelectList(Model.Item1, "Value", "Text"), " ", new { @class = "form-control" })
                 </div>
             </div>
-            <div class="col-md-6">
+
+            <div class="col-md-4">
                 <div class="form-group">
                     Payment Type:
                     @Html.DropDownList("PaymentType", new SelectList(Model.Item3, "Value", "Text"), new { @class = "form-control" })
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    Grand Total:
+                    <input style="text-align: right" type="text" pattern="^\d*(\.\d{0,2})?$" id="grandTotal" value="0.00" name="grandTotal:" readonly="readonly" class="form-control" />
+                </div>
+            </div>
         </div>
     </div>
 </fieldset>
+
+<fieldset>
+    <legend>
+        Restaurant Items
+    </legend>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    Items:
+                    @Html.DropDownList("Items", new SelectList(Model.Item2, "Value", "Text"), " ", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-md-4">
+                Unit Price:
+                <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="UnitPrice" value="0.00" name="Unit Price: " readonly="readonly" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                Quantity:
+                <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="Quantity" value="0.00" name="Quantity:" class="form-control" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                Discount:
+                <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="Discount" value="0.00" name="Discount:" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                Total:
+                <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="Total" value="0.00" name="Total:" readonly="readonly" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <input style="text-align: right; margin-top: 5mm;" type="button" id="AddToList" value="Add To List" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset>
+    <legend>
+        Restaurant Listed Items
+    </legend>
+    <table style="width: 100%" id="tabelListItems">
+        <thead>
+            <tr>
+                <th hidden>
+                    Id
+                </th>
+                <th>
+                    Item Name
+                </th>
+                <th>
+                    Unit Price
+                </th>
+                <th>
+                    Quantity
+                </th>
+                <th>
+                    Discount
+                </th>
+                <th>
+                    Total
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+    </table>
+</fieldset>
+<div class="saveButton">
+    <button type="button" data-toggle="modal" data-target="#paymentModal" id="checkOut" value="checkOut" class="btn btn-success">Check Out</button>
+</div>
+
+<div class="modal fade" role="dialog" id="paymentModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="modal-title">Payment</h4>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" data-dismiss="modal" class="close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="row modelClass">
+                    <div class="col-md-6">
+                        Payment Total:
+                        <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="PaymentTotal" value="0.00" name="Payment Total:" readonly="readonly" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        Payment Amount:
+                        <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="PaymentAmount" value="0.00" name="Payment Amount:" class="form-control" />
+                    </div>
+                </div>
+                <div class="row modelClass">
+                    <div class="col-md-6">
+                        Return Total:
+                        <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="ReturnTotal" value="0.00" name="Return Total:" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        Balance Amount:
+                        <input style="text-align: right" type="number" pattern="^\d*(\.\d{0,2})?$" id="BalanceAmount" value="0.00" name="Balance Amount:" readonly="readonly" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="Payment" class="btn btn-success" data-dismiss="modal" disabled="disabled">Payment</button>
+                <button type="button" id="Close" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 

@@ -18,11 +18,11 @@ namespace RestaurantApp.Repositories
         public IEnumerable<SelectListItem> getAllPayments()
         {
             IEnumerable<SelectListItem> selectedItems = new List<SelectListItem>();
-            selectedItems = (from obj in restaurant.items
+            selectedItems = (from obj in restaurant.paymentTypes
                              select new SelectListItem()
                              {
-                                 Text = obj.itemName,
-                                 Value = obj.itemId.ToString(),
+                                 Text = obj.paymentTypeName,
+                                 Value = obj.paymentTypeId.ToString(),
                                  Selected = true
                              }).ToList();
             return selectedItems;

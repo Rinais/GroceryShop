@@ -28,5 +28,8 @@ namespace RestaurantApp.Models
         public virtual DbSet<Customer> Customers { get; set; }
         public virtual DbSet<item> items { get; set; }
         public virtual DbSet<paymentType> paymentTypes { get; set; }
+        public virtual DbSet<transaction> transactions { get; set; }
+        public virtual DbSet<Detail> Details { get; set; }
+        public virtual DbSet<order> orders { get; set; }
     }
 }
